@@ -72,6 +72,7 @@ for row in reader:
   old_grade = row[projectcol]
   logging.info(f"old_grade: {old_grade}")
   new_grade = grade(nid, old_grade)
+  logging.info(f"nid: {nid}")
   logging.info(f"new_grade: {new_grade}\n")
   updated_row = [ row[x] for x in required_cols ] + [ new_grade ]
   writer.writerow(updated_row)
