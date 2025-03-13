@@ -61,7 +61,7 @@ def grade(nid, old_grade):
   output, err = p.communicate()
   rc = p.returncode
   logging.info(output)
-  outlines = output.decode('ascii').splitlines()
+  outlines = output.decode('ascii', errors="ignore").splitlines()
   logging.info(outlines)
   new_grade = float(outlines[-1])
   return new_grade
