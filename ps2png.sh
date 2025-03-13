@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Save buffer as a ps file in emacs:
+# C-u M-x ps-print-buffer
+
 if [ $# -lt 1 ]; then
 	echo "USAGE: ${0} file.ps [file.png]"
 	exit 1
