@@ -42,9 +42,6 @@ logging.info(f"required cols: {required_cols}")
 logging.info(f"project column name: {header[projectcol]}")
 logging.info(f"project column: {projectcol}")
 
-# skip second header row
-next(reader)
-
 header_row = [ header[x] for x in required_cols ] + [ header[projectcol] ]
 writer.writerow(header_row)
 
