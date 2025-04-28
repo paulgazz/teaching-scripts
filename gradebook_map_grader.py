@@ -59,9 +59,6 @@ logging.info(f"required cols: {required_cols}")
 logging.info(f"project column name: {header[projectcol]}")
 logging.info(f"project column: {projectcol}")
 
-# skip second header row
-next(reader)
-
 header_row = [ header[x] for x in required_cols ] + [ header[projectcol] ]
 writer.writerow(header_row)
 
@@ -88,6 +85,9 @@ def grade(nid, old_grade, late_penalty=0):
 
 for row in reader:
   nid = row[required_cols[nidindex]]
+  if len(nid) == 0:
+    writer.writerow(row)
+    continue
   logging.info(f"nid: {nid}")
   old_grade = row[projectcol]
   logging.info(f"old_grade: {old_grade}")
