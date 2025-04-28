@@ -65,7 +65,8 @@ next(reader)
 header_row = [ header[x] for x in required_cols ] + [ header[projectcol] ]
 writer.writerow(header_row)
 
-def grade(nid, old_grade):
+
+def grade(nid, old_grade, late_penalty=0):
   command = grader + [ nid ]
   logging.info(command)
   p = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -74,15 +75,23 @@ def grade(nid, old_grade):
   logging.info(output)
   outlines = output.decode('ascii', errors="ignore").splitlines()
   logging.info(outlines)
+  # convert the student's current grade to float if possible
+  try:
+    old_grade = float(old_grade)
+  except ValueError:
+    old_grade = 0.0
+  # convert the student's new grade to float.  the grader script is required to return a float
   new_grade = float(outlines[-1])
-  return new_grade
+  # apply a late penalty (if not zero) and only update the grade if it's higher than the old grade
+  grade_to_update = max(new_grade - late_penalty, old_grade)
+  return grade_to_update
 
 for row in reader:
   nid = row[required_cols[nidindex]]
   logging.info(f"nid: {nid}")
   old_grade = row[projectcol]
   logging.info(f"old_grade: {old_grade}")
-  new_grade = grade(nid, old_grade)
+  new_grade = grade(nid, old_grade, late_penalty=penalty)
   logging.info(f"nid: {nid}")
   logging.info(f"new_grade: {new_grade}\n")
   updated_row = [ row[x] for x in required_cols ] + [ new_grade ]
