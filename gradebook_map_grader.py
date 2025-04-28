@@ -16,16 +16,27 @@ import subprocess
 import csv
 import logging
 logging.basicConfig(level=logging.INFO)
+import argparse
 
-if len(sys.argv) < 3:
-  print(f"USAGE: {os.path.basename(sys.argv[0])} project grader [grader_arg] [...] < 2024-11-07T0918_Grades-COP3402-24Fall_0001.csv > project_slice.csv")
-  print("  project is the name of an assignment, which will be matched using startswith against a header column name")
-  print("  grader is the name of an assignment, which will be matched using startswith against a header column name.  grader takes nid and project name and the last line of output should have the grade, which will be converted to a floating point number.")
-  exit(1)
+parser = argparse.ArgumentParser(description='Map students to grades in a gradebook csv given a grading script.')
+parser.epilog = f'''EXAMPLE: {parser.prog} codegen2 "codegen2 project" bash cop3402_grader.sh codegen2 CodeGen < gradebook.csv > codegen2_grades.csv
+'''
+# \tcat 2025-03-13T1349_Grades-COP3402-25Spring_0002.csv | gradebook_slice_project.py "codegen3 project" | {parser.prog} "codegen3 project" bash cop3402_grader.sh codegen3 CodeGen | tee 2025-03-13T1349_Grades-COP3402-25Spring_0002_codegen3.csv
 
-project = sys.argv[1]
-grader = sys.argv[2:]
-  
+parser.add_argument('project', type=str,
+                    help='the name of an assignment, which will be matched using startswith against a header column name')
+parser.add_argument('grader', type=str, nargs='+',
+                    help='a grading script; it is passed an nid as its last argument; the last line of output should have the grade, which will be converted to a floating point number')
+parser.add_argument('--penalty', '-p', type=float,
+                    default=0.0,
+                    help='the amount of late penalty to deduct from the new grade; default to 0, no penalty')
+
+args = parser.parse_args()
+
+project = args.project
+grader = args.grader
+penalty = args.penalty
+
 reader = csv.reader(sys.stdin, delimiter=',')
 writer = csv.writer(sys.stdout, delimiter=',')
 header = next(reader)
