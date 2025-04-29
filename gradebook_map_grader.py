@@ -17,6 +17,7 @@ import csv
 import logging
 logging.basicConfig(level=logging.INFO)
 import argparse
+import math
 
 parser = argparse.ArgumentParser(description='Map students to grades in a gradebook csv given a grading script.')
 parser.epilog = f'''EXAMPLE: {parser.prog} codegen2 "codegen2 project" bash cop3402_grader.sh codegen2 CodeGen < gradebook.csv > codegen2_grades.csv
@@ -30,12 +31,20 @@ parser.add_argument('grader', type=str, nargs='+',
 parser.add_argument('--penalty', '--late-penalty', '-p', type=float,
                     default=0.0,
                     help='the amount of late penalty to deduct from the new grade; default to 0, no penalty')
+parser.add_argument('--minimum-grade', '-m', type=float,
+                    default=0.0,
+                    help='')
+parser.add_argument('--maximum-grade', '-M', type=float,
+                    default=math.inf,
+                    help='')
 
 args = parser.parse_args()
 
 project = args.project
 grader = args.grader
 penalty = args.penalty
+minimum_grade = args.minimum_grade
+maximum_grade = args.maximum_grade
 
 reader = csv.reader(sys.stdin, delimiter=',')
 writer = csv.writer(sys.stdout, delimiter=',')
@@ -63,7 +72,7 @@ header_row = [ header[x] for x in required_cols ] + [ header[projectcol] ]
 writer.writerow(header_row)
 
 
-def grade(nid, old_grade, penalty=0.0):
+def grade(nid, old_grade, penalty=0.0, minimum_grade=0.0, maximum_grade=math.inf):
   command = grader + [ nid ]
   logging.info(command)
   p = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -91,7 +100,7 @@ for row in reader:
   logging.info(f"nid: {nid}")
   old_grade = row[projectcol]
   logging.info(f"old_grade: {old_grade}")
-  new_grade = grade(nid, old_grade, penalty=penalty)
+  new_grade = grade(nid, old_grade, penalty=penalty, minimum_grade=minimum_grade, maximum_grade=maximum_grade)
   logging.info(f"nid: {nid}")
   logging.info(f"new_grade: {new_grade}\n")
   updated_row = [ row[x] for x in required_cols ] + [ new_grade ]
