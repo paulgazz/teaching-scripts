@@ -27,7 +27,7 @@ parser.add_argument('project', type=str,
                     help='the name of an assignment, which will be matched using startswith against a header column name')
 parser.add_argument('grader', type=str, nargs='+',
                     help='a grading script; it is passed an nid as its last argument; the last line of output should have the grade, which will be converted to a floating point number')
-parser.add_argument('--penalty', '-p', type=float,
+parser.add_argument('--penalty', '--late-penalty', '-p', type=float,
                     default=0.0,
                     help='the amount of late penalty to deduct from the new grade; default to 0, no penalty')
 
@@ -63,7 +63,7 @@ header_row = [ header[x] for x in required_cols ] + [ header[projectcol] ]
 writer.writerow(header_row)
 
 
-def grade(nid, old_grade, late_penalty=0):
+def grade(nid, old_grade, penalty=0.0):
   command = grader + [ nid ]
   logging.info(command)
   p = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -80,7 +80,7 @@ def grade(nid, old_grade, late_penalty=0):
   # convert the student's new grade to float.  the grader script is required to return a float
   new_grade = float(outlines[-1])
   # apply a late penalty (if not zero) and only update the grade if it's higher than the old grade
-  grade_to_update = max(new_grade - late_penalty, old_grade)
+  grade_to_update = max(new_grade - penalty, old_grade)
   return grade_to_update
 
 for row in reader:
@@ -91,7 +91,7 @@ for row in reader:
   logging.info(f"nid: {nid}")
   old_grade = row[projectcol]
   logging.info(f"old_grade: {old_grade}")
-  new_grade = grade(nid, old_grade, late_penalty=penalty)
+  new_grade = grade(nid, old_grade, penalty=penalty)
   logging.info(f"nid: {nid}")
   logging.info(f"new_grade: {new_grade}\n")
   updated_row = [ row[x] for x in required_cols ] + [ new_grade ]
